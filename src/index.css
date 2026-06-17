@@ -1,0 +1,23 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0d0d10;
+  color: #f0f0f6;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+#root { min-height: 100svh; }
+
+/* Prevent text selection on game board */
+.select-none { user-select: none; -webkit-user-select: none; }
+
+/* Smooth transitions everywhere */
+* { transition-property: background-color, border-color, color, opacity; transition-timing-function: ease; transition-duration: 80ms; }
+button, input { font-family: inherit; }

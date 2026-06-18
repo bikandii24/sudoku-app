@@ -7,7 +7,7 @@ import { Header } from '../components/Header';
 import { StatsModal } from '../components/StatsModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { useGame } from '../hooks/useGame';
-import { loadStats, saveStats, recordWin, loadSession, loadPrefs, savePrefs, saveDailyRecord, todayString } from '../lib/storage';
+import { loadStats, saveStats, recordWin, recordLoss, loadSession, loadPrefs, savePrefs, saveDailyRecord, todayString } from '../lib/storage';
 import type { BoolGrid, Difficulty, GameStats, HintResult, Preferences } from '../types';
 
 interface Props {
@@ -66,6 +66,16 @@ export function Game({ initialDifficulty, onHome }: Props) {
     setTimeout(() => setShowWin(true), 400);
   }, [state.isComplete]);
 
+  // Handle game lost — record the loss for accurate win rate stats (fires once per game)
+  const lossRecordedRef = useRef(false);
+  useEffect(() => {
+    if (state.mistakesCount < MAX_MISTAKES || state.isComplete || lossRecordedRef.current) return;
+    lossRecordedRef.current = true;
+    const newStats = recordLoss(stats);
+    saveStats(newStats);
+    setStats(newStats);
+  }, [state.mistakesCount, state.isComplete]);
+
   const handlePrefsChange = (p: Preferences) => {
     setPrefs(p);
     savePrefs(p);
@@ -81,6 +91,7 @@ export function Game({ initialDifficulty, onHome }: Props) {
   };
 
   const handleNewGame = (d: Difficulty) => {
+    lossRecordedRef.current = false;
     setShowWin(false);
     setHintResult(null);
     startGame(d);

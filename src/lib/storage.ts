@@ -94,6 +94,16 @@ export function recordWin(stats: GameStats, difficulty: Difficulty, timeMs: numb
   };
 }
 
+export function recordLoss(stats: GameStats): GameStats {
+  const today = new Date().toISOString().slice(0, 10);
+  return {
+    ...stats,
+    gamesPlayed: stats.gamesPlayed + 1,
+    currentStreak: 0,
+    lastPlayedDate: today,
+  };
+}
+
 export function formatTime(ms: number): string {
   if (ms < 0 || ms === undefined || ms === null) return '--:--';
   const s = Math.floor(ms / 1000);

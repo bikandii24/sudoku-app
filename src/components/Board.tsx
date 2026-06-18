@@ -70,7 +70,7 @@ export function Board({ state, onSelectCell, onInput, onUndo, onToggleNotes, hig
               isSelected={r === selRow && c === selCol}
               isRelated={isRelated(r, c)}
               isSameNumber={highlightSameNumber && !!selVal && value === selVal}
-              isError={highlightErrors && errors[r][c]}
+              isError={highlightErrors && errors[r][c] && !locked[r][c]}
               isNew={!!(flashCell && flashCell.row === r && flashCell.col === c)}
               row={r}
               col={c}

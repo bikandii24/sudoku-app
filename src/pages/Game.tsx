@@ -6,7 +6,7 @@ import { HintModal } from '../components/HintModal';
 import { Header } from '../components/Header';
 import { StatsModal } from '../components/StatsModal';
 import { useGame } from '../hooks/useGame';
-import { loadStats, saveStats, recordWin, loadDailyRecords, saveDailyRecord, todayString } from '../lib/storage';
+import { loadStats, saveStats, recordWin, loadSession, saveDailyRecord, todayString } from '../lib/storage';
 import type { Difficulty, GameStats, HintResult } from '../types';
 
 interface Props {
@@ -24,9 +24,9 @@ export function Game({ initialDifficulty, onHome }: Props) {
   const [hintResult, setHintResult] = useState<HintResult | null>(null);
   const [showWin, setShowWin] = useState(false);
 
-  // Start game if no active session
+  // Start new game only if there is no saved session to restore
   useEffect(() => {
-    if (!state.startTime) startGame(initialDifficulty);
+    if (!loadSession()) startGame(initialDifficulty);
   }, []);
 
   // Handle completion
@@ -75,7 +75,7 @@ export function Game({ initialDifficulty, onHome }: Props) {
       <div className="flex-1 flex flex-col items-center justify-center w-full gap-4 mt-2">
         {/* Pause overlay */}
         {state.isPaused && !state.isComplete && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
+          <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
             <div className="text-center">
               <div className="text-5xl mb-4">⏸</div>
               <p className="text-ink-secondary text-sm mb-4">Game paused</p>

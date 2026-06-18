@@ -48,12 +48,20 @@ function reducer(state: GameState, action: Action): GameState {
       return { ...state, selected: action.cell };
 
     case 'INPUT': {
-      const { selected, given, locked, board, solution, notes: curNotes, history } = state;
+      const { selected, given, locked, board, solution, notes: curNotes, history, mistakesCount: prevMistakes } = state;
       if (!selected) return state;
       const { row, col } = selected;
       if (given[row][col] || locked[row][col]) return state;
 
-      const newHistory = [...history, { board: cloneGrid(board), notes: emptyNotes() }].slice(-30);
+      // Snapshot before the change (with actual notes, locked, and mistakesCount)
+      const snapshot = {
+        board: cloneGrid(board),
+        notes: curNotes.map(r => r.map(s => new Set(s))),
+        locked: locked.map(r => [...r]),
+        mistakesCount: prevMistakes,
+      };
+      const newHistory = [...history, snapshot].slice(-30);
+
       const newBoard = cloneGrid(board);
       newBoard[row][col] = action.value;
 
@@ -65,8 +73,8 @@ function reducer(state: GameState, action: Action): GameState {
       const errors = getConflicts(newBoard);
       const isComplete = action.value !== 0 && isBoardComplete(newBoard, solution);
 
-      let mistakesCount = state.mistakesCount;
-      let newLocked = state.locked.map(r => [...r]);
+      let mistakesCount = prevMistakes;
+      let newLocked = locked.map(r => [...r]);
       if (action.value !== 0 && action.value === solution[row][col]) {
         newLocked[row][col] = true;
       } else if (action.value !== 0 && action.value !== solution[row][col]) {
@@ -94,7 +102,7 @@ function reducer(state: GameState, action: Action): GameState {
       if (!state.history.length) return state;
       const prev = state.history[state.history.length - 1];
       const errors = getConflicts(prev.board);
-      return { ...state, board: prev.board, notes: prev.notes, errors, history: state.history.slice(0, -1) };
+      return { ...state, board: prev.board, notes: prev.notes, locked: prev.locked, mistakesCount: prev.mistakesCount, errors, history: state.history.slice(0, -1) };
     }
 
     case 'HINT': {
@@ -132,12 +140,16 @@ export function useGame() {
   useEffect(() => {
     const saved = loadSession();
     if (saved) {
+      // Recompute locked: pre-filled cells + cells the user placed correctly
+      const locked = saved.given.map((row, r) =>
+        row.map((isGiven, c) => isGiven || (saved.board[r][c] !== 0 && saved.board[r][c] === saved.solution[r][c]))
+      );
       dispatch({ type: 'RESTORE', state: {
         board: saved.board,
         solution: saved.solution,
         given: saved.given,
         notes: decodeNotes(saved.notes),
-        locked: saved.given.map(r => [...r]),
+        locked,
         difficulty: saved.difficulty,
         hintsUsed: saved.hintsUsed,
         mistakesCount: saved.mistakesCount,

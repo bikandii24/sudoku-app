@@ -31,6 +31,8 @@ export interface GameState {
 export interface HistoryEntry {
   board: Grid;
   notes: NoteGrid;
+  locked: BoolGrid;
+  mistakesCount: number;
 }
 
 export interface GameStats {

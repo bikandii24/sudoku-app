@@ -7,7 +7,7 @@ import { loadSession, saveSession, clearSession, todayString } from '../lib/stor
 type Action =
   | { type: 'START'; difficulty: Difficulty; seed?: number }
   | { type: 'SELECT'; cell: Cell | null }
-  | { type: 'INPUT'; value: number }      // 0 = erase
+  | { type: 'INPUT'; value: number; autoRemoveNotes?: boolean }  // 0 = erase
   | { type: 'TOGGLE_NOTE'; value: number }
   | { type: 'UNDO' }
   | { type: 'HINT'; hint: HintResult }
@@ -66,7 +66,7 @@ function reducer(state: GameState, action: Action): GameState {
       newBoard[row][col] = action.value;
 
       let newNotes = curNotes;
-      if (action.value !== 0) {
+      if (action.value !== 0 && action.autoRemoveNotes !== false) {
         newNotes = pruneNotes(curNotes, row, col, action.value);
       }
 
@@ -186,9 +186,9 @@ export function useGame() {
 
   const selectCell = useCallback((cell: Cell | null) => dispatch({ type: 'SELECT', cell }), []);
 
-  const inputNumber = useCallback((value: number) => {
+  const inputNumber = useCallback((value: number, opts?: { autoRemoveNotes?: boolean }) => {
     if (state.noteMode) dispatch({ type: 'TOGGLE_NOTE', value });
-    else dispatch({ type: 'INPUT', value });
+    else dispatch({ type: 'INPUT', value, autoRemoveNotes: opts?.autoRemoveNotes ?? true });
   }, [state.noteMode]);
 
   const toggleNote = useCallback((value: number) => dispatch({ type: 'TOGGLE_NOTE', value }), []);

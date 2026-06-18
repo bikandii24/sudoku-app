@@ -1,4 +1,5 @@
-import React from 'react';
+﻿import React, { useMemo } from 'react';
+import type { Grid, BoolGrid } from '../types';
 
 interface Props {
   onInput: (v: number) => void;
@@ -10,27 +11,61 @@ interface Props {
   hintsUsed: number;
   maxHints?: number;
   disabled?: boolean;
+  board: Grid;
+  locked: BoolGrid;
 }
 
 const DIGITS = [1,2,3,4,5,6,7,8,9];
 
-export function NumberPad({ onInput, onErase, onUndo, onHint, onToggleNotes, noteMode, hintsUsed, maxHints = 3, disabled }: Props) {
+function countPlaced(board: Grid, locked: BoolGrid, digit: number): number {
+  let n = 0;
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++)
+      if (locked[r][c] && board[r][c] === digit) n++;
+  return n;
+}
+
+export function NumberPad({ onInput, onErase, onUndo, onHint, onToggleNotes, noteMode, hintsUsed, maxHints = 3, disabled, board, locked }: Props) {
   const hintsLeft = maxHints - hintsUsed;
+
+  const remaining = useMemo(
+    () => DIGITS.map(d => 9 - countPlaced(board, locked, d)),
+    [board, locked]
+  );
 
   return (
     <div className="w-full max-w-[min(420px,90vw)] mx-auto flex flex-col gap-3">
-      {/* Digit buttons */}
+      {/* Digit buttons with remaining count */}
       <div className="grid grid-cols-9 gap-1.5">
-        {DIGITS.map(n => (
-          <button
-            key={n}
-            disabled={disabled}
-            onClick={() => onInput(n)}
-            className="aspect-square rounded-lg bg-bg-card border border-bg-border font-mono font-medium text-ink-primary text-lg transition-all duration-75 active:scale-90 hover:bg-bg-hover hover:border-accent/40 disabled:opacity-30 focus:outline-none focus:ring-2 focus:ring-accent"
-          >
-            {n}
-          </button>
-        ))}
+        {DIGITS.map((n, i) => {
+          const left = remaining[i];
+          const done = left === 0;
+          return (
+            <button
+              key={n}
+              disabled={disabled || done}
+              onClick={() => onInput(n)}
+              className={[
+                'relative flex flex-col items-center justify-center aspect-square rounded-lg border font-mono font-medium',
+                'transition-all duration-75 active:scale-90 focus:outline-none focus:ring-2 focus:ring-accent',
+                done
+                  ? 'bg-bg-hover border-bg-border text-ok opacity-35 cursor-default'
+                  : 'bg-bg-card border-bg-border text-ink-primary hover:bg-bg-hover hover:border-accent/40 disabled:opacity-30',
+              ].join(' ')}
+            >
+              <span className={`leading-none ${done ? 'text-[clamp(10px,2vw,16px)]' : 'text-[clamp(12px,2.5vw,20px)]'}`}>{n}</span>
+              {!done && left <= 3 ? (
+                <span className="text-[8px] leading-none text-warn mt-0.5 tabular-nums font-medium">{left}</span>
+              ) : !done ? (
+                <span className="text-[8px] leading-none text-ink-muted mt-0.5 tabular-nums">{left}</span>
+              ) : (
+                <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth={2} className="w-2 h-2 mt-0.5 text-ok">
+                  <path d="M1.5 5l2.5 2.5 4.5-4.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Action buttons */}
@@ -62,7 +97,7 @@ export function NumberPad({ onInput, onErase, onUndo, onHint, onToggleNotes, not
         <ActionButton
           onClick={onHint}
           disabled={disabled || hintsLeft <= 0}
-          label={`Hint ${hintsLeft > 0 ? `(${hintsLeft})` : ''}`}
+          label={hintsLeft > 0 ? `Hint (${hintsLeft})` : 'No hints'}
           accent
           icon={
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
@@ -72,6 +107,10 @@ export function NumberPad({ onInput, onErase, onUndo, onHint, onToggleNotes, not
           }
         />
       </div>
+
+      <p className="text-center text-[10px] text-ink-muted font-mono opacity-60">
+        N notes &nbsp;·&nbsp; Ctrl+Z undo &nbsp;·&nbsp; arrows navigate
+      </p>
     </div>
   );
 }

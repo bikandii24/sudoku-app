@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Board } from '../components/Board';
 import { NumberPad } from '../components/NumberPad';
 import { WinModal } from '../components/WinModal';
 import { HintModal } from '../components/HintModal';
 import { Header } from '../components/Header';
 import { StatsModal } from '../components/StatsModal';
+import { SettingsModal } from '../components/SettingsModal';
 import { useGame } from '../hooks/useGame';
-import { loadStats, saveStats, recordWin, loadSession, saveDailyRecord, todayString } from '../lib/storage';
-import type { Difficulty, GameStats, HintResult } from '../types';
+import { loadStats, saveStats, recordWin, loadSession, loadPrefs, savePrefs, saveDailyRecord, todayString } from '../lib/storage';
+import type { BoolGrid, Difficulty, GameStats, HintResult, Preferences } from '../types';
 
 interface Props {
   initialDifficulty: Difficulty;
@@ -20,14 +21,38 @@ const MAX_MISTAKES = 3;
 export function Game({ initialDifficulty, onHome }: Props) {
   const { state, startGame, selectCell, inputNumber, toggleNote, undo, toggleNoteMode, togglePause, requestHint } = useGame();
   const [stats, setStats] = useState<GameStats>(() => loadStats());
+  const [prefs, setPrefs] = useState<Preferences>(() => loadPrefs());
   const [showStats, setShowStats] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [hintResult, setHintResult] = useState<HintResult | null>(null);
   const [showWin, setShowWin] = useState(false);
+  const [flashCell, setFlashCell] = useState<{ row: number; col: number } | null>(null);
+  const prevLockedRef = useRef<BoolGrid>(state.locked);
 
   // Start new game only if there is no saved session to restore
   useEffect(() => {
     if (!loadSession()) startGame(initialDifficulty);
   }, []);
+
+  // Detect newly locked cells for flash animation
+  useEffect(() => {
+    const prev = prevLockedRef.current;
+    const curr = state.locked;
+    let found = false;
+    for (let r = 0; r < 9 && !found; r++) {
+      for (let c = 0; c < 9 && !found; c++) {
+        if (!prev[r][c] && curr[r][c] && !state.given[r][c]) {
+          found = true;
+          setFlashCell({ row: r, col: c });
+          const t = setTimeout(() => setFlashCell(null), 550);
+          prevLockedRef.current = curr;
+          // cleanup handled by effect return
+          return () => clearTimeout(t);
+        }
+      }
+    }
+    prevLockedRef.current = curr;
+  }, [state.locked]);
 
   // Handle completion
   useEffect(() => {
@@ -41,8 +66,13 @@ export function Game({ initialDifficulty, onHome }: Props) {
     setTimeout(() => setShowWin(true), 400);
   }, [state.isComplete]);
 
-  // Auto-loss on max mistakes
+  const handlePrefsChange = (p: Preferences) => {
+    setPrefs(p);
+    savePrefs(p);
+  };
+
   const gameLost = state.mistakesCount >= MAX_MISTAKES && !state.isComplete;
+  const paused = state.isPaused || gameLost;
 
   const handleHint = () => {
     if (state.hintsUsed >= MAX_HINTS[state.difficulty]) return;
@@ -56,7 +86,15 @@ export function Game({ initialDifficulty, onHome }: Props) {
     startGame(d);
   };
 
-  const paused = state.isPaused || gameLost;
+  const handleInput = (v: number) => {
+    if (!paused) inputNumber(v, { autoRemoveNotes: prefs.autoRemoveNotes });
+  };
+
+  // Progress: user-placed cells vs total empty cells
+  const givenCount = state.given.flat().filter(Boolean).length;
+  const totalEmpty = 81 - givenCount;
+  const filledByUser = state.board.flat().filter(Boolean).length - givenCount;
+  const progress = totalEmpty > 0 ? Math.round((filledByUser / totalEmpty) * 100) : 0;
 
   return (
     <div className="flex flex-col items-center min-h-screen px-3 pb-6">
@@ -69,6 +107,7 @@ export function Game({ initialDifficulty, onHome }: Props) {
         hasGame={!!state.startTime}
         onPause={togglePause}
         onStats={() => setShowStats(true)}
+        onSettings={() => setShowSettings(true)}
         onHome={onHome}
       />
 
@@ -89,13 +128,15 @@ export function Game({ initialDifficulty, onHome }: Props) {
           </div>
         )}
 
-        {/* Max mistakes overlay */}
+        {/* Game-lost overlay */}
         {gameLost && (
           <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
             <div className="bg-bg-card rounded-2xl p-7 w-full max-w-sm border border-err/30 text-center shadow-2xl">
               <div className="text-4xl mb-3">💔</div>
               <h2 className="text-xl font-semibold text-ink-primary mb-2">Too many mistakes</h2>
-              <p className="text-ink-secondary text-sm mb-6">You made {MAX_MISTAKES} mistakes. Better luck next time!</p>
+              <p className="text-ink-secondary text-sm mb-6">
+                You made {MAX_MISTAKES} mistakes. Better luck next time!
+              </p>
               <div className="flex flex-col gap-2">
                 <button onClick={() => handleNewGame(state.difficulty)} className="w-full py-3 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors">
                   Try again
@@ -111,16 +152,19 @@ export function Game({ initialDifficulty, onHome }: Props) {
         <Board
           state={state}
           onSelectCell={(r, c) => selectCell({ row: r, col: c })}
-          onInput={inputNumber}
+          onInput={handleInput}
           onUndo={undo}
-          highlightRelated
-          highlightSameNumber
-          highlightErrors
+          onToggleNotes={toggleNoteMode}
+          highlightRelated={prefs.highlightRelated}
+          highlightSameNumber={prefs.highlightSameNumber}
+          highlightErrors={prefs.highlightErrors}
+          disabled={paused}
+          flashCell={flashCell}
         />
 
         <NumberPad
-          onInput={(v) => { if (!paused) inputNumber(v); }}
-          onErase={() => { if (!paused) inputNumber(0); }}
+          onInput={handleInput}
+          onErase={() => handleInput(0)}
           onUndo={undo}
           onHint={handleHint}
           onToggleNotes={toggleNoteMode}
@@ -128,15 +172,21 @@ export function Game({ initialDifficulty, onHome }: Props) {
           hintsUsed={state.hintsUsed}
           maxHints={MAX_HINTS[state.difficulty]}
           disabled={paused}
+          board={state.board}
+          locked={state.locked}
         />
 
         {/* Progress bar */}
-        {state.startTime > 0 && (
+        {state.startTime > 0 && !state.isComplete && (
           <div className="w-full max-w-[min(420px,90vw)] px-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] text-ink-muted font-mono">{filledByUser} / {totalEmpty}</span>
+              <span className="text-[10px] text-ink-muted font-mono">{progress}%</span>
+            </div>
             <div className="h-1 bg-bg-hover rounded-full overflow-hidden">
               <div
                 className="h-full bg-accent rounded-full transition-all duration-500"
-                style={{ width: `${Math.round((state.board.flat().filter(Boolean).length / 81) * 100)}%` }}
+                style={{ width: `${progress}%` }}
               />
             </div>
           </div>
@@ -149,6 +199,7 @@ export function Game({ initialDifficulty, onHome }: Props) {
           difficulty={state.difficulty}
           hintsUsed={state.hintsUsed}
           mistakes={state.mistakesCount}
+          date={state.difficulty === 'daily' ? todayString() : undefined}
           onNewGame={handleNewGame}
           onClose={() => setShowWin(false)}
         />
@@ -166,6 +217,14 @@ export function Game({ initialDifficulty, onHome }: Props) {
         <StatsModal
           stats={stats}
           onClose={() => setShowStats(false)}
+        />
+      )}
+
+      {showSettings && (
+        <SettingsModal
+          prefs={prefs}
+          onChange={handlePrefsChange}
+          onClose={() => setShowSettings(false)}
         />
       )}
     </div>

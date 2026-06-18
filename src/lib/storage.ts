@@ -1,5 +1,4 @@
-import type { GameStats, Preferences, DailyRecord, Difficulty, Theme } from '../types';
-import { decodeNotes, emptyNotes } from './solver';
+import type { GameStats, Preferences, DailyRecord, Difficulty } from '../types';
 
 const KEYS = {
   stats:   'sudoku:stats',
@@ -8,11 +7,13 @@ const KEYS = {
   daily:   'sudoku:daily',
 };
 
-const DEFAULT_BEST_TIMES: Record<Difficulty, number> = { easy: 0, medium: 0, hard: 0, expert: 0, daily: 0 };
+const DEFAULT_RECORD: Record<Difficulty, number> = { easy: 0, medium: 0, hard: 0, expert: 0, daily: 0 };
 
 export const DEFAULT_STATS: GameStats = {
   gamesPlayed: 0, gamesWon: 0, currentStreak: 0, bestStreak: 0,
-  bestTimes: { ...DEFAULT_BEST_TIMES }, avgTimes: { ...DEFAULT_BEST_TIMES },
+  bestTimes: { ...DEFAULT_RECORD },
+  avgTimes:  { ...DEFAULT_RECORD },
+  winsByDifficulty: { ...DEFAULT_RECORD },
   totalTimeMs: 0, lastPlayedDate: '', completedDates: [], achievements: [],
 };
 
@@ -73,8 +74,10 @@ export function recordWin(stats: GameStats, difficulty: Difficulty, timeMs: numb
   const prevBest = stats.bestTimes[difficulty];
   const newBest = prevBest === 0 ? timeMs : Math.min(prevBest, timeMs);
 
+  // Use per-difficulty win count for correct average calculation
+  const winsByDifficulty = { ...(stats.winsByDifficulty ?? {}), ...DEFAULT_RECORD };
+  const prevCount = winsByDifficulty[difficulty];
   const prevAvg = stats.avgTimes[difficulty];
-  const prevCount = stats.gamesWon;
   const newAvg = prevCount === 0 ? timeMs : Math.round((prevAvg * prevCount + timeMs) / (prevCount + 1));
 
   return {
@@ -84,14 +87,15 @@ export function recordWin(stats: GameStats, difficulty: Difficulty, timeMs: numb
     currentStreak: newStreak,
     bestStreak: Math.max(stats.bestStreak, newStreak),
     bestTimes: { ...stats.bestTimes, [difficulty]: newBest },
-    avgTimes: { ...stats.avgTimes, [difficulty]: newAvg },
+    avgTimes:  { ...stats.avgTimes, [difficulty]: newAvg },
+    winsByDifficulty: { ...winsByDifficulty, [difficulty]: prevCount + 1 },
     totalTimeMs: stats.totalTimeMs + timeMs,
     lastPlayedDate: today,
   };
 }
 
 export function formatTime(ms: number): string {
-  if (!ms) return '--:--';
+  if (ms < 0 || ms === undefined || ms === null) return '--:--';
   const s = Math.floor(ms / 1000);
   const m = Math.floor(s / 60);
   const h = Math.floor(m / 60);

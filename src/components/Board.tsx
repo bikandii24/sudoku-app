@@ -7,12 +7,15 @@ interface Props {
   onSelectCell: (r: number, c: number) => void;
   onInput: (v: number) => void;
   onUndo: () => void;
+  onToggleNotes?: () => void;
   highlightRelated: boolean;
   highlightSameNumber: boolean;
   highlightErrors: boolean;
+  disabled?: boolean;
+  flashCell?: { row: number; col: number } | null;
 }
 
-export function Board({ state, onSelectCell, onInput, onUndo, highlightRelated, highlightSameNumber, highlightErrors }: Props) {
+export function Board({ state, onSelectCell, onInput, onUndo, onToggleNotes, highlightRelated, highlightSameNumber, highlightErrors, disabled, flashCell }: Props) {
   const { board, given, locked, notes, selected, errors } = state;
   const selRow = selected?.row ?? -1;
   const selCol = selected?.col ?? -1;
@@ -26,9 +29,12 @@ export function Board({ state, onSelectCell, onInput, onUndo, highlightRelated, 
   // Keyboard navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (state.isComplete || state.isPaused) return;
+      if (disabled || state.isComplete || state.isPaused) return;
 
       if (e.key === 'z' && (e.ctrlKey || e.metaKey)) { onUndo(); return; }
+      if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey) {
+        onToggleNotes?.(); return;
+      }
 
       if (selRow >= 0) {
         if (/^[1-9]$/.test(e.key)) { onInput(Number(e.key)); return; }
@@ -45,7 +51,7 @@ export function Board({ state, onSelectCell, onInput, onUndo, highlightRelated, 
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [state.isComplete, state.isPaused, selRow, selCol, onInput, onUndo, onSelectCell]);
+  }, [disabled, state.isComplete, state.isPaused, selRow, selCol, onInput, onUndo, onSelectCell, onToggleNotes]);
 
   return (
     <div className="w-full max-w-[min(420px,90vw)] mx-auto">
@@ -65,6 +71,7 @@ export function Board({ state, onSelectCell, onInput, onUndo, highlightRelated, 
               isRelated={isRelated(r, c)}
               isSameNumber={highlightSameNumber && !!selVal && value === selVal}
               isError={highlightErrors && errors[r][c]}
+              isNew={!!(flashCell && flashCell.row === r && flashCell.col === c)}
               row={r}
               col={c}
               onClick={() => onSelectCell(r, c)}

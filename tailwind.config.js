@@ -23,7 +23,9 @@ export default {
         'fade-in':   'fadeIn 0.18s ease both',
         'slide-up':  'slideUp 0.22s cubic-bezier(0.34,1.4,0.64,1) both',
         'ripple':    'ripple 0.5s ease-out both',
-        'celebrate': 'celebrate 0.6s cubic-bezier(0.34,1.6,0.64,1) both',
+        'celebrate':   'celebrate 0.6s cubic-bezier(0.34,1.6,0.64,1) both',
+        'lock-flash':  'lockFlash 0.55s ease-out both',
+        'digit-done':  'digitDone 0.4s cubic-bezier(0.34,1.6,0.64,1) both',
       },
       keyframes: {
         pop:       { '0%': { transform: 'scale(0.8)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } },
@@ -31,7 +33,9 @@ export default {
         fadeIn:    { from: { opacity: '0' }, to: { opacity: '1' } },
         slideUp:   { from: { transform: 'translateY(16px)', opacity: '0' }, to: { transform: 'translateY(0)', opacity: '1' } },
         ripple:    { from: { transform: 'scale(0.6)', opacity: '0.6' }, to: { transform: 'scale(1.4)', opacity: '0' } },
-        celebrate: { '0%': { transform: 'scale(0.7) rotate(-5deg)', opacity: '0' }, '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' } },
+        celebrate:  { '0%': { transform: 'scale(0.7) rotate(-5deg)', opacity: '0' }, '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' } },
+        lockFlash:  { '0%': { backgroundColor: 'rgba(52,211,153,0.35)' }, '60%': { backgroundColor: 'rgba(52,211,153,0.12)' }, '100%': { backgroundColor: 'rgba(52,211,153,0)' } },
+        digitDone:  { '0%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.18)' }, '100%': { transform: 'scale(1)' } },
       },
       boxShadow: {
         'cell-selected': '0 0 0 2px #7c6fff',

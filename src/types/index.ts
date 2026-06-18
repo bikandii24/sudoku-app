@@ -36,16 +36,17 @@ export interface HistoryEntry {
 }
 
 export interface GameStats {
-  gamesPlayed:   number;
-  gamesWon:      number;
-  currentStreak: number;
-  bestStreak:    number;
-  bestTimes:     Record<Difficulty, number>;  // fastest ms, 0 = none
-  avgTimes:      Record<Difficulty, number>;  // average ms
-  totalTimeMs:   number;
-  lastPlayedDate: string; // YYYY-MM-DD
-  completedDates: string[]; // daily puzzles completed
-  achievements:  Achievement[];
+  gamesPlayed:       number;
+  gamesWon:          number;
+  currentStreak:     number;
+  bestStreak:        number;
+  bestTimes:         Record<Difficulty, number>;  // fastest ms, 0 = none
+  avgTimes:          Record<Difficulty, number>;  // average ms
+  winsByDifficulty:  Record<Difficulty, number>;  // win count per difficulty (for correct avg)
+  totalTimeMs:       number;
+  lastPlayedDate:    string; // YYYY-MM-DD
+  completedDates:    string[]; // daily puzzles completed
+  achievements:      Achievement[];
 }
 
 export interface Achievement {

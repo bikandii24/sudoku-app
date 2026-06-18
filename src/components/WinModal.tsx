@@ -9,6 +9,7 @@ interface Props {
   mistakes: number;
   date?: string;  // YYYY-MM-DD, set for daily to enable share
   onNewGame: (d: Difficulty) => void;
+  onHome: () => void;
   onClose: () => void;
 }
 
@@ -22,7 +23,7 @@ const MESSAGES = [
 
 const STAR_EMOJIS = ['⭐', '⭐⭐', '⭐⭐⭐'];
 
-export function WinModal({ timeMs, difficulty, hintsUsed, mistakes, date, onNewGame, onClose }: Props) {
+export function WinModal({ timeMs, difficulty, hintsUsed, mistakes, date, onNewGame, onHome, onClose }: Props) {
   // Fixed at mount — never flickers on re-render
   const msg = useMemo(() => MESSAGES[Math.floor(Math.random() * MESSAGES.length)], []);
   const rating = hintsUsed === 0 && mistakes === 0 ? 3 : hintsUsed <= 1 && mistakes <= 2 ? 2 : 1;
@@ -97,6 +98,12 @@ export function WinModal({ timeMs, difficulty, hintsUsed, mistakes, date, onNewG
               Share result
             </button>
           )}
+          <button
+            onClick={onHome}
+            className="w-full py-2.5 rounded-xl bg-bg-hover border border-bg-border text-ink-muted text-sm hover:text-ink-secondary transition-colors focus:outline-none"
+          >
+            Home
+          </button>
         </div>
       </div>
     </Overlay>

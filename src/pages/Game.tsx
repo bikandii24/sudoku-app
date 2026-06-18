@@ -19,7 +19,7 @@ const MAX_HINTS: Record<Difficulty, number> = { easy: 5, medium: 4, hard: 3, exp
 const MAX_MISTAKES = 3;
 
 export function Game({ initialDifficulty, onHome }: Props) {
-  const { state, startGame, selectCell, inputNumber, toggleNote, undo, toggleNoteMode, togglePause, requestHint } = useGame();
+  const { state, startGame, selectCell, inputNumber, undo, toggleNoteMode, togglePause, requestHint } = useGame();
   const [stats, setStats] = useState<GameStats>(() => loadStats());
   const [prefs, setPrefs] = useState<Preferences>(() => loadPrefs());
   const [showStats, setShowStats] = useState(false);
@@ -158,7 +158,7 @@ export function Game({ initialDifficulty, onHome }: Props) {
           highlightRelated={prefs.highlightRelated}
           highlightSameNumber={prefs.highlightSameNumber}
           highlightErrors={prefs.highlightErrors}
-          disabled={paused}
+          disabled={paused || !!hintResult || showStats || showSettings}
           flashCell={flashCell}
         />
 
@@ -201,6 +201,7 @@ export function Game({ initialDifficulty, onHome }: Props) {
           mistakes={state.mistakesCount}
           date={state.difficulty === 'daily' ? todayString() : undefined}
           onNewGame={handleNewGame}
+          onHome={() => { setShowWin(false); onHome(); }}
           onClose={() => setShowWin(false)}
         />
       )}

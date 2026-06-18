@@ -52,28 +52,28 @@ function fillGrid(grid: Grid, rng: RNG): boolean {
   return true;
 }
 
-// Count solutions — stops at 2 (we only need to know if unique)
+// Count solutions up to `limit` — stops early once limit is reached
 function countSolutions(grid: Grid, limit = 2): number {
   let count = 0;
-  function solve(): boolean {
+  const solve = (): void => {
+    if (count >= limit) return; // found enough, stop
     for (let row = 0; row < 9; row++) {
       for (let col = 0; col < 9; col++) {
         if (grid[row][col] !== 0) continue;
+        // Try each candidate for this empty cell
         for (let num = 1; num <= 9; num++) {
           if (isValid(grid, row, col, num)) {
             grid[row][col] = num;
-            if (solve()) {
-              if (++count >= limit) { grid[row][col] = 0; return true; }
-            }
+            solve();
             grid[row][col] = 0;
+            if (count >= limit) return; // short-circuit
           }
         }
-        return false;
+        return; // no valid number — dead end, backtrack
       }
     }
-    count++;
-    return false;
-  }
+    count++; // no empty cell found — board is complete
+  };
   solve();
   return count;
 }

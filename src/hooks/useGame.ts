@@ -206,6 +206,24 @@ export function useGame() {
     });
   }, [state.board, state.notes, state.difficulty, state.hintsUsed, state.mistakesCount, state.noteMode, state.startTime, state.isComplete]);
 
+  // Flush accurate elapsedMs when tab/app goes to background (covers Home navigation on mobile)
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  useEffect(() => {
+    const flush = () => {
+      const s = stateRef.current;
+      if (!s.startTime || s.isComplete || s.isPaused) return;
+      saveSession({
+        board: s.board, solution: s.solution, given: s.given,
+        notes: encodeNotes(s.notes), difficulty: s.difficulty,
+        hintsUsed: s.hintsUsed, mistakesCount: s.mistakesCount,
+        elapsedMs: elapsedRef.current, startTime: s.startTime, noteMode: s.noteMode,
+      });
+    };
+    document.addEventListener('visibilitychange', flush);
+    return () => document.removeEventListener('visibilitychange', flush);
+  }, []);
+
   const startGame = useCallback((difficulty: Difficulty) => {
     clearSession();
     dispatch({ type: 'START', difficulty });

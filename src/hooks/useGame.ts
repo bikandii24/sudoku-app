@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import type { Difficulty, GameState, Grid, NoteGrid, Cell, HintResult } from '../types';
 import { generatePuzzle, dateToSeed, cloneGrid, emptyGrid } from '../lib/generator';
-import { getConflicts, isBoardComplete, findHint, pruneNotes, emptyNotes, encodeNotes, decodeNotes } from '../lib/solver';
+import { getConflicts, isBoardComplete, findHint, pruneNotes, emptyNotes, encodeNotes, decodeNotes, getCandidates } from '../lib/solver';
 import { loadSession, saveSession, clearSession, todayString } from '../lib/storage';
 
 type Action =
@@ -14,7 +14,8 @@ type Action =
   | { type: 'TOGGLE_NOTE_MODE' }
   | { type: 'TOGGLE_PAUSE' }
   | { type: 'TICK'; ms: number }
-  | { type: 'RESTORE'; state: Partial<GameState> };
+  | { type: 'RESTORE'; state: Partial<GameState> }
+  | { type: 'FILL_CANDIDATES' };
 
 function makeInitial(): GameState {
   return {
@@ -132,6 +133,17 @@ function reducer(state: GameState, action: Action): GameState {
     case 'RESTORE':
       return { ...state, ...action.state };
 
+    case 'FILL_CANDIDATES': {
+      const newNotes: NoteGrid = state.notes.map(r => r.map(s => new Set(s)));
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (state.board[r][c] !== 0 || state.locked[r][c]) continue;
+          newNotes[r][c] = getCandidates(state.board, r, c);
+        }
+      }
+      return { ...state, notes: newNotes };
+    }
+
     default: return state;
   }
 }
@@ -200,6 +212,7 @@ export function useGame() {
   }, [state.noteMode]);
 
   const undo = useCallback(() => dispatch({ type: 'UNDO' }), []);
+  const fillCandidates = useCallback(() => dispatch({ type: 'FILL_CANDIDATES' }), []);
   const toggleNoteMode = useCallback(() => dispatch({ type: 'TOGGLE_NOTE_MODE' }), []);
   const togglePause = useCallback(() => dispatch({ type: 'TOGGLE_PAUSE' }), []);
 
@@ -209,5 +222,5 @@ export function useGame() {
     return hint;
   }, [state.board, state.solution]);
 
-  return { state, startGame, selectCell, inputNumber, undo, toggleNoteMode, togglePause, requestHint, canUndo: state.history.length > 0 };
+  return { state, startGame, selectCell, inputNumber, undo, fillCandidates, toggleNoteMode, togglePause, requestHint, canUndo: state.history.length > 0 };
 }

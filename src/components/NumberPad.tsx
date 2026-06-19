@@ -7,6 +7,7 @@ interface Props {
   onUndo: () => void;
   onHint: () => void;
   onToggleNotes: () => void;
+  onFillCandidates: () => void;
   noteMode: boolean;
   hintsUsed: number;
   maxHints?: number;
@@ -26,7 +27,7 @@ function countPlaced(board: Grid, locked: BoolGrid, digit: number): number {
   return n;
 }
 
-export function NumberPad({ onInput, onErase, onUndo, onHint, onToggleNotes, noteMode, hintsUsed, maxHints = 3, disabled, canUndo = false, board, locked }: Props) {
+export function NumberPad({ onInput, onErase, onUndo, onHint, onToggleNotes, onFillCandidates, noteMode, hintsUsed, maxHints = 3, disabled, canUndo = false, board, locked }: Props) {
   const hintsLeft = maxHints - hintsUsed;
 
   const remaining = useMemo(
@@ -108,6 +109,14 @@ export function NumberPad({ onInput, onErase, onUndo, onHint, onToggleNotes, not
           }
         />
       </div>
+
+      <button
+        onClick={onFillCandidates}
+        disabled={disabled}
+        className="w-full py-2 rounded-xl border border-bg-border bg-bg-card text-ink-muted text-xs font-mono hover:bg-bg-hover hover:text-ink-secondary transition-colors disabled:opacity-30 focus:outline-none"
+      >
+        Fill pencil marks
+      </button>
 
       <p className="text-center text-[10px] text-ink-muted font-mono opacity-60">
         N notes &nbsp;·&nbsp; Ctrl+Z undo &nbsp;·&nbsp; arrows navigate

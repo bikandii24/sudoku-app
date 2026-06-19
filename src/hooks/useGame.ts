@@ -134,14 +134,21 @@ function reducer(state: GameState, action: Action): GameState {
       return { ...state, ...action.state };
 
     case 'FILL_CANDIDATES': {
+      const snapshot = {
+        board: cloneGrid(state.board),
+        notes: state.notes.map(r => r.map(s => new Set(s))),
+        locked: state.locked.map(r => [...r]),
+        mistakesCount: state.mistakesCount,
+      };
       const newNotes: NoteGrid = state.notes.map(r => r.map(s => new Set(s)));
       for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) {
           if (state.board[r][c] !== 0 || state.locked[r][c]) continue;
+          if (newNotes[r][c].size > 0) continue; // preserve manual notes
           newNotes[r][c] = getCandidates(state.board, r, c);
         }
       }
-      return { ...state, notes: newNotes };
+      return { ...state, notes: newNotes, history: [...state.history, snapshot].slice(-30) };
     }
 
     default: return state;

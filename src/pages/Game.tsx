@@ -8,7 +8,7 @@ import { StatsModal } from '../components/StatsModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { AchievementToast } from '../components/AchievementToast';
 import { useGame } from '../hooks/useGame';
-import { loadStats, saveStats, recordWin, recordLoss, loadSession, loadPrefs, savePrefs, saveDailyRecord, loadDailyRecords, computeDailyStreak, todayString } from '../lib/storage';
+import { loadStats, saveStats, recordWin, recordLoss, loadSession, clearSession, loadPrefs, savePrefs, saveDailyRecord, loadDailyRecords, computeDailyStreak, todayString } from '../lib/storage';
 import { checkAchievements, type AchievementDef } from '../lib/achievements';
 import { HAPTICS } from '../lib/haptics';
 import type { BoolGrid, Difficulty, GameStats, HintResult, Preferences, Theme } from '../types';
@@ -38,9 +38,18 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
   const prevStartTimeRef = useRef(state.startTime);
   const lossRecordedRef = useRef(false);
 
-  // Start new game only if there is no saved session to restore
+  // Start new game, or restore a compatible saved session
   useEffect(() => {
-    if (!loadSession()) startGame(initialDifficulty);
+    const saved = loadSession();
+    if (!saved) { startGame(initialDifficulty); return; }
+    // Session is for a different difficulty → discard and start fresh
+    if (saved.difficulty !== initialDifficulty) { clearSession(); startGame(initialDifficulty); return; }
+    // Stale daily session (started before today) → discard and start fresh
+    if (initialDifficulty === 'daily') {
+      const todayMidnight = new Date(); todayMidnight.setHours(0, 0, 0, 0);
+      if (saved.startTime < todayMidnight.getTime()) { clearSession(); startGame(initialDifficulty); return; }
+    }
+    // Compatible session → useGame restores it via its own RESTORE dispatch
   }, []);
 
   // Detect newly locked cells — flash animation + correct haptic

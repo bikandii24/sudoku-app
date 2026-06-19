@@ -11,6 +11,7 @@ interface Props {
   hintsUsed: number;
   maxHints?: number;
   disabled?: boolean;
+  canUndo?: boolean;
   board: Grid;
   locked: BoolGrid;
 }
@@ -25,7 +26,7 @@ function countPlaced(board: Grid, locked: BoolGrid, digit: number): number {
   return n;
 }
 
-export function NumberPad({ onInput, onErase, onUndo, onHint, onToggleNotes, noteMode, hintsUsed, maxHints = 3, disabled, board, locked }: Props) {
+export function NumberPad({ onInput, onErase, onUndo, onHint, onToggleNotes, noteMode, hintsUsed, maxHints = 3, disabled, canUndo = false, board, locked }: Props) {
   const hintsLeft = maxHints - hintsUsed;
 
   const remaining = useMemo(
@@ -76,7 +77,7 @@ export function NumberPad({ onInput, onErase, onUndo, onHint, onToggleNotes, not
             <path d="M6.5 17.5l4-4" strokeLinecap="round"/>
           </svg>
         }/>
-        <ActionButton onClick={onUndo} disabled={disabled} label="Undo" icon={
+        <ActionButton onClick={onUndo} disabled={disabled || !canUndo} label="Undo" icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
             <path d="M3 7v6h6" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M3 13A9 9 0 1 0 5.5 6.5L3 7" strokeLinecap="round"/>

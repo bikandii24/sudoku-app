@@ -23,7 +23,7 @@ const MAX_HINTS: Record<Difficulty, number> = { easy: 5, medium: 4, hard: 3, exp
 const MAX_MISTAKES = 3;
 
 export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
-  const { state, startGame, selectCell, inputNumber, undo, toggleNoteMode, togglePause, requestHint } = useGame();
+  const { state, startGame, selectCell, inputNumber, undo, toggleNoteMode, togglePause, requestHint, canUndo } = useGame();
   const [stats, setStats] = useState<GameStats>(() => loadStats());
   const [prefs, setPrefs] = useState<Preferences>(() => loadPrefs());
   const [showStats, setShowStats] = useState(false);
@@ -210,6 +210,7 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
           hintsUsed={state.hintsUsed}
           maxHints={MAX_HINTS[state.difficulty]}
           disabled={paused}
+          canUndo={canUndo}
           board={state.board}
           locked={state.locked}
         />

@@ -13,7 +13,12 @@ export function AchievementToast({ achievement, onDone }: Props) {
   }, [achievement.id]);
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[70] animate-slide-up pointer-events-none">
+    <div
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[70] animate-slide-up cursor-pointer"
+      onClick={onDone}
+      role="button"
+      aria-label="Dismiss achievement"
+    >
       <div className="bg-bg-card border border-accent/40 rounded-2xl px-5 py-3.5 flex items-center gap-3.5 shadow-2xl">
         <span className="text-2xl leading-none">{achievement.icon}</span>
         <div>

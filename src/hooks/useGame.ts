@@ -205,5 +205,5 @@ export function useGame() {
     return hint;
   }, [state.board, state.solution]);
 
-  return { state, startGame, selectCell, inputNumber, undo, toggleNoteMode, togglePause, requestHint };
+  return { state, startGame, selectCell, inputNumber, undo, toggleNoteMode, togglePause, requestHint, canUndo: state.history.length > 0 };
 }

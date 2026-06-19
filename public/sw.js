@@ -1,4 +1,5 @@
-const CACHE = 'sudoku-v2';
+const CACHE = 'sudoku-v3';
+const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.add('/')).then(() => self.skipWaiting()));
@@ -15,12 +16,14 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  if (url.origin !== self.location.origin) return;
+  const isFont = FONT_HOSTS.includes(url.hostname);
+  if (url.origin !== self.location.origin && !isFont) return;
 
   e.respondWith(
     caches.open(CACHE).then(async cache => {
       const cached = await cache.match(e.request);
-      const fresh = fetch(e.request).then(resp => {
+      const fetchOpts = isFont ? { mode: 'cors' } : undefined;
+      const fresh = fetch(e.request, fetchOpts).then(resp => {
         if (resp.ok) cache.put(e.request, resp.clone());
         return resp;
       }).catch(() => cached);

@@ -14,7 +14,7 @@ export const DEFAULT_STATS: GameStats = {
   bestTimes: { ...DEFAULT_RECORD },
   avgTimes:  { ...DEFAULT_RECORD },
   winsByDifficulty: { ...DEFAULT_RECORD },
-  totalTimeMs: 0, lastPlayedDate: '', completedDates: [], achievements: [],
+  totalTimeMs: 0, lastPlayedDate: '', achievements: [],
 };
 
 export const DEFAULT_PREFS: Preferences = {

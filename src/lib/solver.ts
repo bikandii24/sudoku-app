@@ -193,19 +193,4 @@ export function decodeNotes(raw: number[][][]): NoteGrid {
   return raw.map(row => row.map(arr => new Set<number>(arr)));
 }
 
-export function solveForShare(board: Grid, solution: Grid): string {
-  // Wordle-style emoji for daily share
-  const rows: string[] = [];
-  for (let r = 0; r < 9; r++) {
-    let row = '';
-    for (let c = 0; c < 9; c++) {
-      if (board[r][c] === solution[r][c]) row += '🟩';
-      else if (board[r][c] !== 0) row += '🟥';
-      else row += '⬛';
-    }
-    rows.push(row);
-  }
-  return rows.join('\n');
-}
-
 export { emptyGrid };

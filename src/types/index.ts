@@ -45,7 +45,6 @@ export interface GameStats {
   winsByDifficulty:  Record<Difficulty, number>;  // win count per difficulty (for correct avg)
   totalTimeMs:       number;
   lastPlayedDate:    string; // YYYY-MM-DD
-  completedDates:    string[]; // daily puzzles completed
   achievements:      Achievement[];
 }
 

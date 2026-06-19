@@ -191,7 +191,6 @@ export function useGame() {
     else dispatch({ type: 'INPUT', value, autoRemoveNotes: opts?.autoRemoveNotes ?? true });
   }, [state.noteMode]);
 
-  const toggleNote = useCallback((value: number) => dispatch({ type: 'TOGGLE_NOTE', value }), []);
   const undo = useCallback(() => dispatch({ type: 'UNDO' }), []);
   const toggleNoteMode = useCallback(() => dispatch({ type: 'TOGGLE_NOTE_MODE' }), []);
   const togglePause = useCallback(() => dispatch({ type: 'TOGGLE_PAUSE' }), []);
@@ -202,5 +201,5 @@ export function useGame() {
     return hint;
   }, [state.board, state.solution]);
 
-  return { state, startGame, selectCell, inputNumber, toggleNote, undo, toggleNoteMode, togglePause, requestHint };
+  return { state, startGame, selectCell, inputNumber, undo, toggleNoteMode, togglePause, requestHint };
 }

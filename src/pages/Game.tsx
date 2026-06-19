@@ -10,6 +10,7 @@ import { AchievementToast } from '../components/AchievementToast';
 import { useGame } from '../hooks/useGame';
 import { loadStats, saveStats, recordWin, recordLoss, loadSession, loadPrefs, savePrefs, saveDailyRecord, loadDailyRecords, computeDailyStreak, todayString } from '../lib/storage';
 import { checkAchievements, type AchievementDef } from '../lib/achievements';
+import { HAPTICS } from '../lib/haptics';
 import type { BoolGrid, Difficulty, GameStats, HintResult, Preferences, Theme } from '../types';
 
 interface Props {
@@ -33,6 +34,7 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
   const [achievementQueue, setAchievementQueue] = useState<AchievementDef[]>([]);
   const [currentAchievement, setCurrentAchievement] = useState<AchievementDef | null>(null);
   const prevLockedRef = useRef<BoolGrid>(state.locked);
+  const prevMistakesRef = useRef(state.mistakesCount);
   const lossRecordedRef = useRef(false);
 
   // Start new game only if there is no saved session to restore
@@ -40,7 +42,7 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
     if (!loadSession()) startGame(initialDifficulty);
   }, []);
 
-  // Detect newly locked cells for flash animation
+  // Detect newly locked cells — flash animation + correct haptic
   useEffect(() => {
     const prev = prevLockedRef.current;
     const curr = state.locked;
@@ -49,6 +51,7 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
       for (let c = 0; c < 9 && !found; c++) {
         if (!prev[r][c] && curr[r][c] && !state.given[r][c]) {
           found = true;
+          if (prefs.haptics) HAPTICS.correct();
           setFlashCell({ row: r, col: c });
           const t = setTimeout(() => setFlashCell(null), 550);
           prevLockedRef.current = curr;
@@ -59,9 +62,16 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
     prevLockedRef.current = curr;
   }, [state.locked]);
 
+  // Detect new mistakes for haptic feedback
+  useEffect(() => {
+    if (state.mistakesCount > prevMistakesRef.current && prefs.haptics) HAPTICS.mistake();
+    prevMistakesRef.current = state.mistakesCount;
+  }, [state.mistakesCount]);
+
   // Handle completion — record win + check achievements
   useEffect(() => {
     if (!state.isComplete || showWin) return;
+    if (prefs.haptics) HAPTICS.win();
     const newStats = recordWin(stats, state.difficulty, state.elapsedMs);
     if (state.difficulty === 'daily') {
       saveDailyRecord(todayString(), { date: todayString(), completed: true, timeMs: state.elapsedMs, hintsUsed: state.hintsUsed, mistakes: state.mistakesCount });
@@ -91,6 +101,7 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
   useEffect(() => {
     if (state.mistakesCount < MAX_MISTAKES || state.isComplete || lossRecordedRef.current) return;
     lossRecordedRef.current = true;
+    if (prefs.haptics) HAPTICS.lost();
     const newStats = recordLoss(stats);
     saveStats(newStats);
     setStats(newStats);
@@ -107,6 +118,7 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
 
   const handleHint = () => {
     if (state.hintsUsed >= MAX_HINTS[state.difficulty]) return;
+    if (prefs.haptics) HAPTICS.hint();
     const hint = requestHint();
     setHintResult(hint);
   };

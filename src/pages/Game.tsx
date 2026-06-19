@@ -8,7 +8,7 @@ import { StatsModal } from '../components/StatsModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { AchievementToast } from '../components/AchievementToast';
 import { useGame } from '../hooks/useGame';
-import { loadStats, saveStats, recordWin, recordLoss, loadSession, loadPrefs, savePrefs, saveDailyRecord, todayString } from '../lib/storage';
+import { loadStats, saveStats, recordWin, recordLoss, loadSession, loadPrefs, savePrefs, saveDailyRecord, loadDailyRecords, computeDailyStreak, todayString } from '../lib/storage';
 import { checkAchievements, type AchievementDef } from '../lib/achievements';
 import type { BoolGrid, Difficulty, GameStats, HintResult, Preferences, Theme } from '../types';
 
@@ -66,7 +66,8 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
     if (state.difficulty === 'daily') {
       saveDailyRecord(todayString(), { date: todayString(), completed: true, timeMs: state.elapsedMs, hintsUsed: state.hintsUsed, mistakes: state.mistakesCount });
     }
-    const newAch = checkAchievements(newStats, { difficulty: state.difficulty, timeMs: state.elapsedMs, hintsUsed: state.hintsUsed, mistakes: state.mistakesCount });
+    const dailyStreak = computeDailyStreak(loadDailyRecords());
+    const newAch = checkAchievements(newStats, { difficulty: state.difficulty, timeMs: state.elapsedMs, hintsUsed: state.hintsUsed, mistakes: state.mistakesCount, dailyStreak });
     const finalStats: GameStats = newAch.length > 0
       ? { ...newStats, achievements: [...newStats.achievements, ...newAch.map(a => ({ id: a.id, unlockedAt: Date.now() }))] }
       : newStats;

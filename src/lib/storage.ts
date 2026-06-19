@@ -116,3 +116,16 @@ export function formatTime(ms: number): string {
 export function todayString(): string {
   return new Date().toISOString().slice(0, 10);
 }
+
+export function computeDailyStreak(records: Record<string, DailyRecord>): number {
+  let streak = 0;
+  const base = new Date();
+  for (let i = 0; ; i++) {
+    const d = new Date(base);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    if (records[key]?.completed) streak++;
+    else break;
+  }
+  return streak;
+}

@@ -23,9 +23,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 
 export function checkAchievements(
   stats: GameStats,
-  ctx: { difficulty: Difficulty; timeMs: number; hintsUsed: number; mistakes: number }
+  ctx: { difficulty: Difficulty; timeMs: number; hintsUsed: number; mistakes: number; dailyStreak?: number }
 ): AchievementDef[] {
   const unlocked = new Set(stats.achievements.map(a => a.id));
+  const dailyStreak = ctx.dailyStreak ?? 0;
 
   const candidates: [string, boolean][] = [
     ['first_win',  stats.gamesWon >= 1],
@@ -33,8 +34,8 @@ export function checkAchievements(
     ['perfect',    ctx.hintsUsed === 0 && ctx.mistakes === 0],
     ['expert_win', ctx.difficulty === 'expert'],
     ['daily_win',  ctx.difficulty === 'daily'],
-    ['daily_3',    stats.currentStreak >= 3],
-    ['daily_7',    stats.currentStreak >= 7],
+    ['daily_3',    dailyStreak >= 3],
+    ['daily_7',    dailyStreak >= 7],
     ['speed_easy', ctx.difficulty === 'easy' && ctx.timeMs <= 3 * 60_000],
     ['comeback',   ctx.mistakes >= 2],
     ['scholar',    stats.gamesWon >= 10],

@@ -34,7 +34,11 @@ function save<T>(key: string, value: T): void {
 export function loadStats(): GameStats { return { ...DEFAULT_STATS, ...load(KEYS.stats, {}) }; }
 export function saveStats(s: GameStats): void { save(KEYS.stats, s); }
 
-export function loadPrefs(): Preferences { return { ...DEFAULT_PREFS, ...load(KEYS.prefs, {}) }; }
+export function loadPrefs(): Preferences {
+  const stored = load<Partial<Preferences>>(KEYS.prefs, {});
+  const systemTheme = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  return { ...DEFAULT_PREFS, theme: systemTheme, ...stored };
+}
 export function savePrefs(p: Preferences): void { save(KEYS.prefs, p); }
 
 export interface SavedSession {

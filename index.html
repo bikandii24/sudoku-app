@@ -19,7 +19,8 @@
     <script>
       try {
         var p = JSON.parse(localStorage.getItem('sudoku:prefs') || '{}');
-        document.documentElement.className = p.theme || 'dark';
+        var fallback = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.className = p.theme || fallback;
       } catch(e) { document.documentElement.className = 'dark'; }
     </script>
   </head>

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { GameStats, Difficulty } from '../types';
 import { formatTime } from '../lib/storage';
+import { ACHIEVEMENTS } from '../lib/achievements';
 
 interface Props {
   stats: GameStats;
@@ -17,6 +18,7 @@ function statTime(ms: number): string {
 
 export function StatsModal({ stats, onClose }: Props) {
   const winRate = stats.gamesPlayed > 0 ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100) : 0;
+  const unlockedIds = new Set(stats.achievements.map(a => a.id));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose}>
@@ -43,7 +45,7 @@ export function StatsModal({ stats, onClose }: Props) {
             <BigStat label="Best" value={String(stats.bestStreak)} sub="streak" />
           </div>
 
-          {/* Times per difficulty — best and average */}
+          {/* Times per difficulty */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-ink-muted text-xs font-mono uppercase tracking-widest">Times</h3>
@@ -69,6 +71,38 @@ export function StatsModal({ stats, onClose }: Props) {
           <div className="p-3 rounded-xl bg-bg-hover border border-bg-border text-center">
             <div className="font-mono text-lg text-accent-soft">{statTime(stats.totalTimeMs)}</div>
             <div className="text-ink-muted text-xs mt-0.5">Total time played</div>
+          </div>
+
+          {/* Achievements */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-ink-muted text-xs font-mono uppercase tracking-widest">Achievements</h3>
+              <span className="text-[10px] text-ink-muted font-mono">{unlockedIds.size} / {ACHIEVEMENTS.length}</span>
+            </div>
+            <div className="grid grid-cols-1 gap-1.5">
+              {ACHIEVEMENTS.map(a => {
+                const done = unlockedIds.has(a.id);
+                return (
+                  <div
+                    key={a.id}
+                    className={`flex items-center gap-3 p-2.5 rounded-xl border transition-colors ${
+                      done ? 'bg-accent-dim border-accent/20' : 'bg-bg-hover border-bg-border opacity-40'
+                    }`}
+                  >
+                    <span className={`text-lg leading-none ${done ? '' : 'grayscale'}`}>{a.icon}</span>
+                    <div>
+                      <div className={`text-xs font-semibold ${done ? 'text-ink-primary' : 'text-ink-muted'}`}>{a.title}</div>
+                      <div className="text-[11px] text-ink-muted">{a.description}</div>
+                    </div>
+                    {done && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-4 h-4 text-accent-soft ml-auto shrink-0">
+                        <path d="M20 6 9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#0d0d10"/>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c6fff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0.06"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="110" fill="url(#g)"/>
+  <rect x="76" y="76" width="360" height="360" rx="14" fill="none" stroke="#7c6fff" stroke-width="7"/>
+  <line x1="196" y1="76" x2="196" y2="436" stroke="#2c2c38" stroke-width="3"/>
+  <line x1="316" y1="76" x2="316" y2="436" stroke="#2c2c38" stroke-width="3"/>
+  <line x1="76" y1="196" x2="436" y2="196" stroke="#2c2c38" stroke-width="3"/>
+  <line x1="76" y1="316" x2="436" y2="316" stroke="#2c2c38" stroke-width="3"/>
+  <text font-family="monospace" font-weight="500" font-size="82" text-anchor="middle">
+    <tspan x="136" y="172" fill="#9e98ff">5</tspan>
+    <tspan x="256" y="172" fill="#44445a">·</tspan>
+    <tspan x="376" y="172" fill="#9e98ff">3</tspan>
+    <tspan x="136" y="292" fill="#44445a">·</tspan>
+    <tspan x="256" y="292" fill="#7c6fff">9</tspan>
+    <tspan x="376" y="292" fill="#44445a">·</tspan>
+    <tspan x="136" y="412" fill="#9e98ff">7</tspan>
+    <tspan x="256" y="412" fill="#44445a">·</tspan>
+    <tspan x="376" y="412" fill="#34d399">1</tspan>
+  </text>
+</svg>

@@ -1,12 +1,58 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ── Theme tokens ─────────────────────────────── */
+.dark {
+  --bg: #0d0d10; --bg-soft: #15151a; --bg-card: #1a1a21; --bg-hover: #22222a; --bg-border: #2c2c38;
+  --ink-primary: #f0f0f6; --ink-secondary: #8888a0; --ink-muted: #44445a;
+  --accent: #7c6fff; --accent-rgb: 124,111,255; --accent-soft: #9e98ff; --accent-dim: #1e1c3a;
+  --ok: #34d399; --ok-rgb: 52,211,153; --ok-dim: #0a2419;
+  --err: #f87171; --err-dim: #2a0d0d;
+  --warn: #fbbf24; --warn-dim: #271e07;
+  --daily: #fb923c; --daily-dim: #271300;
+  --note: #60a5fa; --note-dim: #0a1828;
+}
+
+.light {
+  --bg: #f5f4f9; --bg-soft: #edeaf6; --bg-card: #ffffff; --bg-hover: #eceaf6; --bg-border: #d8d5e8;
+  --ink-primary: #1a1921; --ink-secondary: #5a586e; --ink-muted: #9896a8;
+  --accent: #6c5ce7; --accent-rgb: 108,92,231; --accent-soft: #5548cc; --accent-dim: #ede9ff;
+  --ok: #10b981; --ok-rgb: 16,185,129; --ok-dim: #d1fae5;
+  --err: #ef4444; --err-dim: #fee2e2;
+  --warn: #f59e0b; --warn-dim: #fef3c7;
+  --daily: #f97316; --daily-dim: #ffedd5;
+  --note: #3b82f6; --note-dim: #dbeafe;
+}
+
+.oled {
+  --bg: #000000; --bg-soft: #080808; --bg-card: #0e0e12; --bg-hover: #141418; --bg-border: #1e1e26;
+  --ink-primary: #ffffff; --ink-secondary: #8888a4; --ink-muted: #3a3a50;
+  --accent: #7c6fff; --accent-rgb: 124,111,255; --accent-soft: #a49eff; --accent-dim: #12103a;
+  --ok: #34d399; --ok-rgb: 52,211,153; --ok-dim: #051610;
+  --err: #f87171; --err-dim: #1a0606;
+  --warn: #fbbf24; --warn-dim: #1a1200;
+  --daily: #fb923c; --daily-dim: #1a0c00;
+  --note: #60a5fa; --note-dim: #060e1a;
+}
+
+.nord {
+  --bg: #2e3440; --bg-soft: #333a47; --bg-card: #3b4252; --bg-hover: #434c5e; --bg-border: #4c566a;
+  --ink-primary: #eceff4; --ink-secondary: #d8dee9; --ink-muted: #616e88;
+  --accent: #88c0d0; --accent-rgb: 136,192,208; --accent-soft: #8fbcbb; --accent-dim: #2e3f47;
+  --ok: #a3be8c; --ok-rgb: 163,190,140; --ok-dim: #2e3a2e;
+  --err: #bf616a; --err-dim: #3d2426;
+  --warn: #ebcb8b; --warn-dim: #3d3520;
+  --daily: #d08770; --daily-dim: #3d2a20;
+  --note: #81a1c1; --note-dim: #2a3547;
+}
+
+/* ── Base ─────────────────────────────────────── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: #0d0d10;
-  color: #f0f0f6;
+  background: var(--bg);
+  color: var(--ink-primary);
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
@@ -15,9 +61,7 @@ body {
 
 #root { min-height: 100svh; }
 
-/* Prevent text selection on game board */
 .select-none { user-select: none; -webkit-user-select: none; }
 
-/* Smooth transitions everywhere */
 * { transition-property: background-color, border-color, color, opacity; transition-timing-function: ease; transition-duration: 80ms; }
 button, input { font-family: inherit; }

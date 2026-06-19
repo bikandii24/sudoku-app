@@ -167,7 +167,11 @@ export function useGame() {
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, []);
 
-  // Autosave
+  // Keep elapsedMs current without making it a save dependency
+  const elapsedRef = useRef(state.elapsedMs);
+  elapsedRef.current = state.elapsedMs;
+
+  // Autosave only on meaningful state changes, not on every timer tick
   useEffect(() => {
     if (!state.startTime) return;
     if (state.isComplete) { clearSession(); return; }
@@ -175,9 +179,9 @@ export function useGame() {
       board: state.board, solution: state.solution, given: state.given,
       notes: encodeNotes(state.notes), difficulty: state.difficulty,
       hintsUsed: state.hintsUsed, mistakesCount: state.mistakesCount,
-      elapsedMs: state.elapsedMs, startTime: state.startTime, noteMode: state.noteMode,
+      elapsedMs: elapsedRef.current, startTime: state.startTime, noteMode: state.noteMode,
     });
-  }, [state]);
+  }, [state.board, state.notes, state.difficulty, state.hintsUsed, state.mistakesCount, state.noteMode, state.startTime, state.isComplete]);
 
   const startGame = useCallback((difficulty: Difficulty) => {
     clearSession();

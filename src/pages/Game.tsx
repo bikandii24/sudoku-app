@@ -35,6 +35,7 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
   const [currentAchievement, setCurrentAchievement] = useState<AchievementDef | null>(null);
   const prevLockedRef = useRef<BoolGrid>(state.locked);
   const prevMistakesRef = useRef(state.mistakesCount);
+  const prevStartTimeRef = useRef(state.startTime);
   const lossRecordedRef = useRef(false);
 
   // Start new game only if there is no saved session to restore
@@ -62,11 +63,16 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
     prevLockedRef.current = curr;
   }, [state.locked]);
 
-  // Detect new mistakes for haptic feedback
+  // Detect new mistakes for haptic — skip on new game / session restore (startTime change)
   useEffect(() => {
+    if (state.startTime !== prevStartTimeRef.current) {
+      prevMistakesRef.current = state.mistakesCount;
+      prevStartTimeRef.current = state.startTime;
+      return;
+    }
     if (state.mistakesCount > prevMistakesRef.current && prefs.haptics) HAPTICS.mistake();
     prevMistakesRef.current = state.mistakesCount;
-  }, [state.mistakesCount]);
+  }, [state.mistakesCount, state.startTime]);
 
   // Handle completion — record win + check achievements
   useEffect(() => {
@@ -125,6 +131,7 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
 
   const handleNewGame = (d: Difficulty) => {
     lossRecordedRef.current = false;
+    prevLockedRef.current = state.locked;
     setShowWin(false);
     setHintResult(null);
     setAchievementQueue([]);
@@ -138,7 +145,7 @@ export function Game({ initialDifficulty, onHome, onThemeChange }: Props) {
 
   const givenCount = state.given.flat().filter(Boolean).length;
   const totalEmpty = 81 - givenCount;
-  const filledByUser = state.board.flat().filter(Boolean).length - givenCount;
+  const filledByUser = state.locked.flat().filter(Boolean).length - givenCount;
   const progress = totalEmpty > 0 ? Math.round((filledByUser / totalEmpty) * 100) : 0;
 
   return (

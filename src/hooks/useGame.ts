@@ -119,7 +119,11 @@ function reducer(state: GameState, action: Action): GameState {
     }
 
     case 'TOGGLE_PAUSE':
-      return { ...state, isPaused: !state.isPaused };
+      if (state.isPaused) {
+        // Resuming: shift startTime forward so elapsed doesn't include pause duration
+        return { ...state, isPaused: false, startTime: Date.now() - state.elapsedMs };
+      }
+      return { ...state, isPaused: true };
 
     case 'TICK':
       if (state.isPaused || state.isComplete) return state;

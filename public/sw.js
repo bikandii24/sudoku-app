@@ -1,4 +1,8 @@
-const CACHE = 'sudoku-v3';
+const CACHE = 'sudoku-v4';
+
+self.addEventListener('message', e => {
+  if (e.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {
